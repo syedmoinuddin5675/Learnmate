@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-n$xgijf(!@4lsn#z$3_0kpjb03@4*r++5k+*!3%%tyq=#24hi_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://learnmate-8ajk.onrender.com']
+ALLOWED_HOSTS = ['learnmate-8ajk.onrender.com']
 
 
 # Application definition
