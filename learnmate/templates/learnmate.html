@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LearnMate — Study Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg1: #c2e9fb;
+      --bg2: #a1c4fd;
+      --card-bg: rgba(255, 255, 255, 0.6);
+      --border: rgba(0,0,0,0.1);
+      --text: #111;
+      --accent: #5b8df7;
+      --correct: #4CAF50;
+      --incorrect: #F44336;
+      --success: #28a745;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+      color: var(--text);
+      padding: 20px;
+      animation: bgshift 12s ease infinite;
+      background-size: 200% 200%;
+      transition: 0.3s;
+    }
+
+    @keyframes bgshift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .sidebar {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      border: 1px solid var(--border);
+      height: fit-content;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      padding: 30px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .container:hover {
+      transform: scale(1.01);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      text-align: center;
+      font-weight: 700;
+      color: #000;
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    textarea {
+      resize: none;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.15);
+      outline: none;
+      background: rgba(255,255,255,0.8);
+      color: #000;
+      font-size: 15px;
+      min-height: 120px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(91,141,247,0.4);
+    }
+
+    button {
+      padding: 12px 18px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #3e76f0;
+      transform: translateY(-2px);
+    }
+
+    .tip {
+      text-align: center;
+      font-size: 13px;
+      color: #333;
+      margin-top: 5px;
+    }
+
+    .results {
+      display: grid;
+      gap: 18px;
+    }
+
+    .section {
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--border);
+      padding: 16px;
+      border-radius: 12px;
+      animation: fadeIn 0.7s ease forwards;
+      transform: translateY(10px);
+      opacity: 0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h3 {
+      margin-top: 0;
+      color: #000;
+      font-size: 18px;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      padding-bottom: 6px;
+    }
+
+    pre, p {
+      color: #111;
+      white-space: pre-wrap;
+      margin: 0;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .no-data {
+      color: rgba(0,0,0,0.5);
+      font-style: italic;
+    }
+
+    /* Dashboard Elements */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .recent-topics {
+      margin-top: 20px;
+    }
+
+    .topic-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0 0;
+    }
+
+    .topic-item {
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .topic-item:hover {
+      background: rgba(91,141,247,0.1);
+    }
+
+    /* Improved Flashcards Styling */
+    .flashcards-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .flashcard {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0,0,0,0.08);
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .flashcard:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+
+    .flashcard-front {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .flashcard-back {
+      display: none;
+      color: #555;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(0,0,0,0.1);
+    }
+
+    .flashcard.flipped .flashcard-back {
+      display: block;
+    }
+
+    /* Improved Quiz Styling */
+    .quiz-container {
+      margin-top: 15px;
+    }
+
+    .quiz-question {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .question-text {
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #333;
+    }
+
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .option:hover {
+      background: rgba(91,141,247,0.05);
+    }
+
+    .option.selected {
+      background: rgba(91,141,247,0.1);
+      border-color: var(--accent);
+    }
+
+    .option.correct {
+      background: rgba(76,175,80,0.1);
+      border-color: var(--correct);
+    }
+
+    .option.incorrect {
+      background: rgba(244,67,54,0.1);
+      border-color: var(--incorrect);
+    }
+
+    .option input {
+      margin: 0;
+    }
+
+    .quiz-results {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .quiz-score {
+      font-weight: 600;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .check-quiz-btn {
+      margin-top: 15px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .check-quiz-btn:hover {
+      background: #3e76f0;
+    }
+
+    /* Loading Animation */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--accent);
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .dot:nth-child(1) { animation-delay: -0.32s; }
+    .dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    @media (max-width: 900px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+      textarea {
+        min-height: 100px;
+      }
+      .flashcards-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar with Dashboard -->
+    <div class="sidebar">
+      <h2>LearnMate Dashboard</h2>
+      
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-value" id="topics-count">0</div>
+          <div class="stat-label">Topics Studied</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="flashcards-count">0</div>
+          <div class="stat-label">Flashcards Created</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="quizzes-count">0</div>
+          <div class="stat-label">Quizzes Completed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="score-avg">0%</div>
+          <div class="stat-label">Average Score</div>
+        </div>
+      </div>
+      
+      <div class="recent-topics">
+        <h3>Recent Topics</h3>
+        <ul class="topic-list" id="topic-list">
+          <!-- Recent topics will be added here dynamically -->
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <div class="container">
+        <h1>LearnMate</h1>
+        <div class="subtitle">Paste notes or a topic — get summary, flashcards, quiz & videos</div>
+
+        <form id="study-form">
+          <textarea name="notes" id="notes-input" placeholder="Type or paste topic here...">Enter any topic you want to study</textarea>
+          <button type="submit">Generate Study Materials</button>
+        </form>
+
+        <div id="loader" class="loading" style="display:none;">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+
+        <div class="tip">Tip: Try topics like "Photosynthesis", "Newton's Laws", or "Python Programming"</div>
+      </div>
+
+      <!-- Results will be dynamically inserted here -->
+      <div id="results-container"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('study-form');
+      const notesInput = document.getElementById('notes-input');
+      const loader = document.getElementById('loader');
+      const resultsContainer = document.getElementById('results-container');
+      const topicList = document.getElementById('topic-list');
+      
+      // Store recent topics in localStorage
+      let recentTopics = JSON.parse(localStorage.getItem('learnmate-recent-topics')) || [];
+      let studyStats = JSON.parse(localStorage.getItem('learnmate-stats')) || {
+        topicsCount: 0,
+        flashcardsCount: 0,
+        quizzesCount: 0,
+        totalScore: 0,
+        quizAttempts: 0
+      };
+      
+      // Initialize dashboard with saved data
+      updateDashboardStats();
+      renderRecentTopics();
+      
+      // Form submission
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const topic = notesInput.value.trim();
+        if (topic) {
+          generateContent(topic);
+        }
+      });
+      
+      function generateContent(topic) {
+        // Show loader
+        loader.style.display = 'flex';
+        resultsContainer.innerHTML = '';
+        
+        // Simulate API call to your backend
+        // In a real implementation, this would be a fetch request to your Django backend
+        setTimeout(() => {
+          // Hide loader
+          loader.style.display = 'none';
+          
+          // Generate dynamic content based on the topic
+          const content = generateDynamicContent(topic);
+          
+          // Create and display results
+          const resultsHTML = `
+            <div class="container">
+              <div class="results">
+                <div class="section">
+                  <h3>📘 Summary</h3>
+                  <pre>${content.summary}</pre>
+                </div>
+                
+                <div class="section">
+                  <h3>🧠 Flashcards</h3>
+                  <div class="flashcards-container" id="flashcards-container"></div>
+                </div>
+                
+                <div class="section">
+                  <h3>📝 Quiz</h3>
+                  <div class="quiz-container" id="quiz-container"></div>
+                  <div class="quiz-results" id="quiz-results">
+                    <div class="quiz-score" id="quiz-score">Your Score: 0/0</div>
+                    <button class="check-quiz-btn" id="check-quiz-btn">Check Answers</button>
+                  </div>
+                </div>
+                
+                <div class="section">
+                  <h3>▶️ YouTube Videos</h3>
+                  <pre>${content.videos}</pre>
+                </div>
+              </div>
+            </div>
+          `;
+          
+          resultsContainer.innerHTML = resultsHTML;
+          
+          // Initialize flashcards
+          const flashcardsContainer = document.getElementById('flashcards-container');
+          if (flashcardsContainer) {
+            content.flashcards.forEach(card => {
+              const flashcard = document.createElement('div');
+              flashcard.className = 'flashcard';
+              flashcard.innerHTML = `
+                <div class="flashcard-front">${card.front}</div>
+                <div class="flashcard-back">${card.back}</div>
+              `;
+              flashcard.addEventListener('click', function() {
+                this.classList.toggle('flipped');
+              });
+              flashcardsContainer.appendChild(flashcard);
+            });
+          }
+          
+          // Initialize quiz
+          const quizContainer = document.getElementById('quiz-container');
+          const quizResults = document.getElementById('quiz-results');
+          const quizScore = document.getElementById('quiz-score');
+          const checkQuizBtn = document.getElementById('check-quiz-btn');
+          
+          if (quizContainer) {
+            content.quiz.forEach((q, index) => {
+              const questionElement = document.createElement('div');
+              questionElement.className = 'quiz-question';
+              questionElement.innerHTML = `
+                <div class="question-text">${index + 1}. ${q.question}</div>
+                <div class="options-container">
+                  ${q.options.map((option, optIndex) => `
+                    <label class="option">
+                      <input type="radio" name="question-${index}" value="${optIndex}">
+                      <span>${option}</span>
+                    </label>
+                  `).join('')}
+                </div>
+              `;
+              quizContainer.appendChild(questionElement);
+            });
+            
+            // Add event listeners to options
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => {
+              option.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                
+                // Remove selected class from all options in the same question
+                const question = this.closest('.quiz-question');
+                const allOptions = question.querySelectorAll('.option');
+                allOptions.forEach(opt => opt.classList.remove('selected'));
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+              });
+            });
+            
+            // Check answers button
+            checkQuizBtn.addEventListener('click', function() {
+              let score = 0;
+              const questions = document.querySelectorAll('.quiz-question');
+              
+              questions.forEach((question, index) => {
+                const selectedOption = question.querySelector('input[type="radio"]:checked');
+                const options = question.querySelectorAll('.option');
+                const correctValue = content.quiz[index].correct;
+                
+                if (selectedOption) {
+                  const selectedValue = parseInt(selectedOption.value);
+                  
+                  // Mark correct and incorrect answers
+                  options.forEach((option, optIndex) => {
+                    if (optIndex === correctValue) {
+                      option.classList.add('correct');
+                    } else if (optIndex === selectedValue && selectedValue !== correctValue) {
+                      option.classList.add('incorrect');
+                    }
+                  });
+                  
+                  if (selectedValue === correctValue) {
+                    score++;
+                  }
+                } else {
+                  // If no answer selected, just show the correct one
+                  options.forEach((option, optIndex) => {
+                    if (optIndex === correctValue) {
+                      option.classList.add('correct');
+                    }
+                  });
+                }
+              });
+              
+              quizScore.textContent = `Your Score: ${score}/${content.quiz.length}`;
+              
+              // Update stats
+              studyStats.quizzesCount++;
+              studyStats.totalScore += score;
+              studyStats.quizAttempts += content.quiz.length;
+              updateDashboardStats();
+            });
+          }
+          
+          // Update dashboard stats
+          addRecentTopic(topic);
+          studyStats.topicsCount++;
+          studyStats.flashcardsCount += content.flashcards.length;
+          updateDashboardStats();
+          
+        }, 1500); // Simulate API delay
+      }
+      
+      function generateDynamicContent(topic) {
+        // This function simulates what your backend would do
+        // In a real implementation, this would be handled by your Django backend
+        
+        // Generate a summary based on the topic
+        const summary = `Summary for "${topic}":
+
+${topic} is a fundamental concept in its field with significant practical applications. Understanding ${topic} requires knowledge of its core principles, historical context, and real-world implementations.
+
+Key aspects of ${topic} include:
+- Foundational concepts and definitions
+- Important principles and theories
+- Practical applications and use cases
+- Common challenges and limitations
+
+Mastering ${topic} provides a solid foundation for further study and application in related areas.`;
+
+        // Generate flashcards based on the topic
+        const flashcards = [
+          { 
+            front: `What is the definition of ${topic}?`, 
+            back: `${topic} is defined as a fundamental concept with specific characteristics and applications in its field.` 
+          },
+          { 
+            front: `What are the key principles of ${topic}?`, 
+            back: `The key principles include foundational concepts, operational mechanisms, and practical implementations that define how ${topic} works.` 
+          },
+          { 
+            front: `How is ${topic} applied in practice?`, 
+            back: `${topic} finds applications in various real-world scenarios, solving specific problems and enabling new capabilities in its domain.` 
+          },
+          { 
+            front: `What are common challenges associated with ${topic}?`, 
+            back: `Common challenges include implementation complexity, scalability issues, and the need for specialized knowledge to effectively work with ${topic}.` 
+          },
+          { 
+            front: `How does ${topic} relate to other concepts in its field?`, 
+            back: `${topic} connects to related concepts through shared principles, complementary applications, and historical development within its discipline.` 
+          }
+        ];
+
+        // Generate quiz questions based on the topic
+        const quiz = [
+          {
+            question: `What is the primary focus of ${topic}?`,
+            options: [
+              `Historical development`,
+              `Core principles and applications`,
+              `Mathematical foundations`,
+              `Future predictions`
+            ],
+            correct: 1
+          },
+          {
+            question: `Which of these best describes a key characteristic of ${topic}?`,
+            options: [
+              `It is a simple concept with limited applications`,
+              `It involves complex interactions between multiple factors`,
+              `It only applies to theoretical scenarios`,
+              `It is unrelated to practical implementations`
+            ],
+            correct: 1
+          },
+          {
+            question: `What is a common application of ${topic}?`,
+            options: [
+              `Solving real-world problems in its domain`,
+              `Only academic research purposes`,
+              `Entertainment and leisure activities`,
+              `Historical documentation only`
+            ],
+            correct: 0
+          },
+          {
+            question: `Which statement about ${topic} is most accurate?`,
+            options: [
+              `It is a static concept that doesn't evolve`,
+              `It has practical implications across multiple domains`,
+              `It is only relevant to specialists`,
+              `It has no connection to everyday life`
+            ],
+            correct: 1
+          }
+        ];
+
+        // Generate video recommendations
+        const videos = `Recommended videos about "${topic}":
+
+- Introduction to ${topic} - Educational Channel
+- ${topic} Explained Simply - Science Made Easy
+- Advanced Applications of ${topic} - Expert Talks
+- ${topic} in Practice - Real World Examples
+
+Search YouTube for "${topic} tutorial" or "${topic} explained" to find more video resources.`;
+
+        return {
+          summary,
+          flashcards,
+          quiz,
+          videos
+        };
+      }
+      
+      function addRecentTopic(topic) {
+        // Remove if already exists
+        recentTopics = recentTopics.filter(t => t !== topic);
+        // Add to beginning
+        recentTopics.unshift(topic);
+        // Keep only last 5
+        recentTopics = recentTopics.slice(0, 5);
+        
+        // Save to localStorage
+        localStorage.setItem('learnmate-recent-topics', JSON.stringify(recentTopics));
+        
+        // Update UI
+        renderRecentTopics();
+      }
+      
+      function renderRecentTopics() {
+        topicList.innerHTML = '';
+        
+        recentTopics.forEach(topic => {
+          const topicItem = document.createElement('li');
+          topicItem.className = 'topic-item';
+          topicItem.textContent = topic;
+          topicItem.addEventListener('click', function() {
+            notesInput.value = topic;
+            generateContent(topic);
+          });
+          
+          topicList.appendChild(topicItem);
+        });
+        
+        if (recentTopics.length === 0) {
+          const emptyMsg = document.createElement('li');
+          emptyMsg.textContent = 'No recent topics';
+          emptyMsg.style.color = '#999';
+          emptyMsg.style.fontStyle = 'italic';
+          topicList.appendChild(emptyMsg);
+        }
+      }
+      
+      function updateDashboardStats() {
+        // Save stats to localStorage
+        localStorage.setItem('learnmate-stats', JSON.stringify(studyStats));
+        
+        // Update UI
+        document.getElementById('topics-count').textContent = studyStats.topicsCount;
+        document.getElementById('flashcards-count').textContent = studyStats.flashcardsCount;
+        document.getElementById('quizzes-count').textContent = studyStats.quizzesCount;
+        
+        const avgScore = studyStats.quizAttempts > 0 
+          ? Math.round((studyStats.totalScore / studyStats.quizAttempts) * 100)
+          : 0;
+        document.getElementById('score-avg').textContent = `${avgScore}%`;
+      }
+    });
+  </script>
+</body>
+</html>
